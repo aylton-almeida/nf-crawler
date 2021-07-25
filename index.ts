@@ -3,11 +3,6 @@ import { config } from "https://deno.land/x/dotenv@v2.0.0/mod.ts";
 
 const env = config({ safe: true });
 
-const escapeXpathString = (str: string) => {
-  const splitedQuotes = str.replace(/'/g, `', "'", '`);
-  return `concat('${splitedQuotes}', '')`;
-};
-
 const browser = await puppeteer.launch({
   executablePath:
     "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -25,21 +20,34 @@ await page.click("#entrar");
 
 // wait for login to be done
 console.log("Waiting for login to end...");
-await page.waitForSelector('[href="/?Meio=NovaNFE"]');
+await page.waitForNavigation();
 await page.click('a[href="/?Meio=NovaNFE"]');
 
-// wait for zapt option
-await page.waitForSelector(
-  'a[href="/?Meio=NovaNFE2&INT_TOMA=VDFSRmVrNXFRWG89"]'
-);
-const [button] = await page.$x(
-  `//a[contains(text(), ${escapeXpathString("ZAPT TECNOLOGIA LTDA")})]`
-);
+// wait for zapt option and click it
+await page.waitForXPath(`//a[contains(text(), "ZAPT TECNOLOGIA LTDA")]`);
+const [button] = await page.$x(`//a[contains(text(), "ZAPT TECNOLOGIA LTDA")]`);
 if (button) {
-  console.log("found");
-  await button.click();
+  console.log("Found Zapt option");
+  await button.evaluate((e) => e.click());
 }
 
+// wait for form
+await page.waitForNavigation();
+// Select activity
+await page.select(
+  "#INT_ATVD",
+  "13570 - TREINAMENTO EM INFORMATICA CURSOS DE INFORMATICA"
+);
+// add description
+await page.focus("#DESC_NF");
+await page.keyboard.type("Consultoria em desenvolvimento de software");
+// add value
+await page.focus("#VR_SRV");
+await page.keyboard.type("1000000");
+// click button
+await page.click("#btn_vzlz");
+
+// await page.waitForNavigation();
 await page.screenshot({ path: "example.png" });
 
 await browser.close();
